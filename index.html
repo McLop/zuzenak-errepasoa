@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="eu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zuzenen Errepasoa - Joko Interaktiboa</title>
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: #000080;
+            color: white;
+            font-family: Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 95%;
+            max-width: 1100px;
+            text-align: center;
+        }
+        .active { display: flex; }
+
+        /* ── PANTALLA 1 ── */
+        #screen1 {
+            justify-content: space-between;
+            min-height: calc(100vh - 40px);
+        }
+
+        .screen1-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 0 20px;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-family: Verdana, sans-serif;
+            color: white;
+            margin-bottom: 24px;
+        }
+
+        .desc {
+            font-size: 18px;
+            font-family: Verdana, sans-serif;
+            color: white;
+            max-width: 720px;
+            line-height: 1.7;
+            margin-bottom: 40px;
+        }
+
+        /* ── BOTONES ── */
+        .btn-black {
+            background-color: black;
+            color: white;
+            border: none;
+            padding: 14px 38px;
+            font-size: 15px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: Verdana, sans-serif;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-black:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 14px rgba(255,255,255,0.3);
+        }
+        .btn-black:active { transform: translateY(0); }
+
+        /* ── PIE DE PÁGINA ── */
+        .footer {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 16px 0 4px;
+            border-top: 1px solid rgba(173,216,230,0.3);
+            flex-wrap: wrap;
+        }
+
+        .footer img {
+            height: 44px;
+            width: auto;
+            border-radius: 4px;
+        }
+
+        .footer-name {
+            font-size: 12px;
+            font-family: Verdana, sans-serif;
+            color: white;
+            white-space: nowrap;
+        }
+
+        /* ── PANTALLA 2 ── */
+        h2 {
+            font-size: 20px;
+            font-family: Verdana, sans-serif;
+            color: white;
+            margin-bottom: 16px;
+        }
+
+        .table-container { width: 100%; overflow-x: auto; }
+
+        table {
+            border-collapse: collapse;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 1050px;
+        }
+
+        th {
+            border: 2px solid #add8e6;
+            padding: 11px 8px;
+            font-weight: bold;
+            font-size: 14px;
+            font-family: Verdana, sans-serif;
+            color: white;
+            background-color: rgba(0,0,0,0.35);
+        }
+
+        td {
+            border: 2px solid #add8e6;
+            width: 190px;
+            height: 120px;
+            vertical-align: middle;
+            text-align: center;
+            background-color: rgba(255,255,255,0.08);
+            transition: background-color 0.3s;
+            position: relative;
+        }
+
+        td.drag-over { background-color: rgba(173,216,230,0.25); }
+
+        td img {
+            max-width: 92%;
+            max-height: 100px;
+            display: block;
+            margin: auto;
+        }
+
+        /* ── VALIDACIÓN ── */
+        .correct {
+            background-color: #28a745 !important;
+            animation: pulse 0.5s ease-in-out;
+        }
+        .incorrect {
+            background-color: #dc3545 !important;
+            animation: shake 0.45s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%,100% { transform: scale(1); }
+            50%      { transform: scale(1.04); }
+        }
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            25%     { transform: translateX(-5px); }
+            75%     { transform: translateX(5px); }
+        }
+
+        /* ── POOL ── */
+        #dropzone-pool {
+            margin-top: 26px;
+            padding: 18px;
+            border: 2px dashed #add8e6;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            min-height: 180px;
+            width: 100%;
+            max-width: 1050px;
+            background-color: rgba(0,0,0,0.18);
+        }
+
+        .pool-title {
+            font-size: 16px;
+            font-family: Verdana, sans-serif;
+            font-weight: bold;
+            color: white;
+        }
+
+        .pool-images {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .draggable-img {
+            width: 118px;
+            height: auto;
+            cursor: grab;
+            background: white;
+            border-radius: 6px;
+            border: 2px solid #ccc;
+            padding: 4px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            touch-action: none;
+        }
+        .draggable-img:hover {
+            transform: scale(1.06);
+            box-shadow: 0 4px 14px rgba(173,216,230,0.55);
+        }
+        .draggable-img.dragging { opacity: 0.45; cursor: grabbing; }
+
+        /* ── PANTALLA 3 ── */
+        .score-num {
+            font-size: 64px;
+            font-weight: bold;
+            margin: 20px 0 10px;
+        }
+        .score-msg {
+            font-size: 20px;
+            margin-bottom: 32px;
+            font-family: Verdana, sans-serif;
+        }
+        .exit-btn {
+            position: fixed;
+            right: 32px;
+            bottom: 28px;
+            cursor: pointer;
+            background-color: rgba(0,0,0,0.5);
+            padding: 10px 22px;
+            border-radius: 25px;
+            border: 1px solid white;
+            font-family: Verdana, sans-serif;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        .exit-btn:hover { background-color: rgba(0,0,0,0.85); }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 768px) {
+            h1 { font-size: 18px; }
+            .desc { font-size: 15px; }
+            th { font-size: 12px; padding: 7px 4px; }
+            td { width: 100px; height: 85px; }
+            .draggable-img { width: 88px; }
+        }
+        @media (max-width: 480px) {
+            td { width: 68px; height: 64px; }
+            .draggable-img { width: 68px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ══════════════ PANTALLA 1 ══════════════ -->
+<div id="screen1" class="screen active">
+
+    <div class="screen1-content">
+        <h1>Zuzenen errepasoa</h1>
+        <p class="desc">
+            Joko honekin zuzenen ezaugarriak eta irudikapen grafikoa errepasatuko dituzu.
+            Forma orokorrean idatzitako zuzen baten ekuazioa duen irudi bat ikusiko duzu,
+            eta honako hauek bilatu beharko dituzu: bere ekuazio esplizitua, bere malda,
+            bere jatorrian ordenatua eta bere grafikoa.
+            <br><br>
+            <strong>Instrukzioak:</strong> Arrastatu irudiak taulako laukitxoetara.
+        </p>
+        <button class="btn-black" onclick="showScreen(2)">Hasi jolasa</button>
+    </div>
+
+    <!-- Pie de página -->
+    <div class="footer">
+        <img src="img/CC.jpg"               alt="Creative Commons" onerror="this.style.display='none'">
+        <img src="img/LogoAAlagunduta.jpg"   alt="AA lagunduta"     onerror="this.style.display='none'">
+        <span class="footer-name">M. Carmen Lopez</span>
+    </div>
+
+</div>
+
+<!-- ══════════════ PANTALLA 2 ══════════════ -->
+<div id="screen2" class="screen">
+
+    <h2>Arrastatu irudiak beren posizio egokira</h2>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Ekuazio Orokorra</th>
+                    <th>Ekuazio Esplizita</th>
+                    <th>Malda (m)</th>
+                    <th>Jatorrian Ordenatua (n)</th>
+                    <th>Grafika</th>
+                </tr>
+            </thead>
+            <tbody id="game-rows">
+                <tr data-row="1">
+                    <td data-col="0"></td><td data-col="1"></td>
+                    <td data-col="2"></td><td data-col="3"></td><td data-col="4"></td>
+                </tr>
+                <tr data-row="2">
+                    <td data-col="0"></td><td data-col="1"></td>
+                    <td data-col="2"></td><td data-col="3"></td><td data-col="4"></td>
+                </tr>
+                <tr data-row="3">
+                    <td data-col="0"></td><td data-col="1"></td>
+                    <td data-col="2"></td><td data-col="3"></td><td data-col="4"></td>
+                </tr>
+                <tr data-row="4">
+                    <td data-col="0"></td><td data-col="1"></td>
+                    <td data-col="2"></td><td data-col="3"></td><td data-col="4"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="dropzone-pool">
+        <div class="pool-title">📦 Irudi-bankua (arrastatu hemendik)</div>
+        <div class="pool-images" id="pool-images"></div>
+    </div>
+
+    <button class="btn-black" style="margin-top:26px;" onclick="validateGame()">
+        Egiaztatu erantzunak
+    </button>
+
+</div>
+
+<!-- ══════════════ PANTALLA 3 ══════════════ -->
+<div id="screen3" class="screen">
+    <h1>Joko osatua 🎉</h1>
+    <div class="score-num" id="score-display">--/20</div>
+    <div class="score-msg" id="score-msg">Segi praktikatzen! Berrikusi teoria.</div>
+    <button class="btn-black" onclick="location.reload()">Berriro jolastu</button>
+    <div class="exit-btn" onclick="window.close() || alert('Eskerrik asko jolasteagatik!')">Ixteko</div>
+</div>
+
+<!-- ══════════════ JAVASCRIPT ══════════════ -->
+<script>
+    const FAMILIES   = [1, 2, 3, 4];
+    const PREFIXES   = ['EkOrok', 'EkEsp', 'Malda', 'JatOrd', 'Grafiko'];
+    const poolImages = document.getElementById('pool-images');
+    const poolZone   = document.getElementById('dropzone-pool');
+
+    let draggedItem = null;   // para touch
+
+    /* ── Generar y mezclar imágenes ── */
+    let allImages = [];
+    FAMILIES.forEach(f => {
+        PREFIXES.forEach(p => {
+            allImages.push({ name: `${p}${f}.png`, family: f, type: p });
+        });
+    });
+    allImages.sort(() => Math.random() - 0.5);
+
+    /* ── Crear elementos img en el pool ── */
+    allImages.forEach(data => {
+        poolImages.appendChild(makeImg(data));
+    });
+
+    function makeImg(data) {
+        const img = document.createElement('img');
+        img.src          = `img/${data.name}`;
+        img.id           = data.name;
+        img.className    = 'draggable-img';
+        img.draggable    = true;
+        img.alt          = data.name;
+        img.dataset.family = data.family;
+        img.dataset.type   = data.type;
+
+        /* Desktop drag */
+        img.addEventListener('dragstart', e => {
+            e.dataTransfer.setData('text', e.target.id);
+            e.target.classList.add('dragging');
+        });
+        img.addEventListener('dragend', e => e.target.classList.remove('dragging'));
+
+        /* Touch drag */
+        img.addEventListener('touchstart',  handleTouchStart, { passive: false });
+        img.addEventListener('touchmove',   handleTouchMove,  { passive: false });
+        img.addEventListener('touchend',    handleTouchEnd,   { passive: false });
+
+        return img;
+    }
+
+    /* ── Configurar celdas (drop) ── */
+    document.querySelectorAll('td').forEach(td => {
+        td.addEventListener('dragover',  e => { e.preventDefault(); td.classList.add('drag-over'); });
+        td.addEventListener('dragleave', ()  => td.classList.remove('drag-over'));
+        td.addEventListener('drop', e => {
+            e.preventDefault();
+            td.classList.remove('drag-over');
+            const img = document.getElementById(e.dataTransfer.getData('text'));
+            if (!img) return;
+            if (td.firstElementChild) returnToPool(td.firstElementChild);
+            td.appendChild(img);
+        });
+    });
+
+    /* ── Drop de vuelta al pool ── */
+    poolZone.addEventListener('dragover', e => e.preventDefault());
+    poolZone.addEventListener('drop', e => {
+        e.preventDefault();
+        const img = document.getElementById(e.dataTransfer.getData('text'));
+        if (img) poolImages.appendChild(img);
+    });
+
+    function returnToPool(img) {
+        poolImages.appendChild(img);
+    }
+
+    /* ── Touch handlers ── */
+    let touchClone = null;
+
+    function handleTouchStart(e) {
+        e.preventDefault();
+        draggedItem = e.currentTarget;
+        draggedItem.classList.add('dragging');
+
+        // Clonar para arrastre visual
+        touchClone = draggedItem.cloneNode(true);
+        touchClone.style.cssText = `
+            position:fixed; opacity:0.75; pointer-events:none; z-index:9999;
+            width:${draggedItem.offsetWidth}px;
+        `;
+        document.body.appendChild(touchClone);
+        moveTouchClone(e.touches[0]);
+    }
+
+    function handleTouchMove(e) {
+        e.preventDefault();
+        if (!touchClone) return;
+        moveTouchClone(e.touches[0]);
+    }
+
+    function handleTouchEnd(e) {
+        e.preventDefault();
+        if (!draggedItem) return;
+
+        draggedItem.classList.remove('dragging');
+        if (touchClone) { touchClone.remove(); touchClone = null; }
+
+        const touch  = e.changedTouches[0];
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        const td     = target ? target.closest('td') : null;
+
+        if (td) {
+            if (td.firstElementChild) returnToPool(td.firstElementChild);
+            td.appendChild(draggedItem);
+        } else {
+            poolImages.appendChild(draggedItem);
+        }
+        draggedItem = null;
+    }
+
+    function moveTouchClone(touch) {
+        touchClone.style.left = touch.clientX - touchClone.offsetWidth  / 2 + 'px';
+        touchClone.style.top  = touch.clientY - touchClone.offsetHeight / 2 + 'px';
+    }
+
+    /* ── Navegación entre pantallas ── */
+    function showScreen(n) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('screen' + n).classList.add('active');
+        window.scrollTo(0, 0);
+    }
+
+    /* ── Validación ── */
+    function validateGame() {
+        const rows = document.querySelectorAll('#game-rows tr');
+        let correct = 0, total = 0;
+
+        rows.forEach(row => {
+            const cells  = row.querySelectorAll('td');
+            let familyRef = null;
+
+            /* columna 0: debe ser EkOrok */
+            const img0 = cells[0].querySelector('img');
+            if (img0 && img0.dataset.type === 'EkOrok') {
+                familyRef = img0.dataset.family;
+                cells[0].className = 'correct';
+                correct++;
+            } else {
+                cells[0].className = 'incorrect';
+            }
+            total++;
+
+            /* columnas 1-4 */
+            for (let i = 1; i < cells.length; i++) {
+                const img = cells[i].querySelector('img');
+                if (img && img.dataset.type === PREFIXES[i] && img.dataset.family == familyRef) {
+                    cells[i].className = 'correct';
+                    correct++;
+                } else {
+                    cells[i].className = 'incorrect';
+                }
+                total++;
+            }
+        });
+
+        /* Puntuación */
+        document.getElementById('score-display').textContent = `${correct}/${total}`;
+
+        const pct = (correct / total) * 100;
+        let msg;
+        if      (pct === 100) msg = '🏆 Ezin hobeto! Zuzenak menperatzen dituzu!';
+        else if (pct >= 80)   msg = '🌟 Oso ongi! Akats txiki batzuk baino ez.';
+        else if (pct >= 60)   msg = '👍 Saiakera ona! Berrikusi kontzeptu batzuk.';
+        else                  msg = '📚 Segi praktikatzen! Berrikusi teoria.';
+
+        document.getElementById('score-msg').textContent = msg;
+
+        setTimeout(() => showScreen(3), 7000);
+    }
+</script>
+</body>
+</html>
